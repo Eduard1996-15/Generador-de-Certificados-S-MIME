@@ -1,0 +1,499 @@
+/**
+ * Generador de Certificados S/MIME - Aplicación de Escritorio
+ * Ideado y desarrollado por Analista Programador Eduard Suárez
+ * 
+ * Este archivo es el punto de entrada principal de la aplicación Electron.
+ * Contiene la lógica para manejar la Autoridad Certificadora, generar certificados,
+ * y gestionar la interfaz de usuario principal.
+ */
+
+const { app, BrowserWindow, Menu, dialog, ipcMain, shell } = require('electron');
+const path = require('path');
+const fs = require('fs');
+const forge = require('node-forge');
+const Store = require('electron-store');
+
+// Configuración persistente
+const store = new Store();
+
+// Variables globales
+let mainWindow;
+let caManager;
+
+/**
+ * Clase para manejar la Autoridad Certificadora (CA)
+ * Proporciona funcionalidades para crear, cargar y gestionar la CA,
+ * así como para generar certificados firmados por esta autoridad.
+ */
+class CAManager {
+  constructor() {
+    this.caPath = path.join(app.getPath('userData'), 'ca');
+    this.certPath = path.join(this.caPath, 'ca.crt');
+    this.keyPath = path.join(this.caPath, 'ca.key');
+  }
+
+  /**
+   * Inicializa la CA, cargándola si existe o creándola si no
+   */
+  async initialize() {
+    // Crear directorio CA si no existe
+    if (!fs.existsSync(this.caPath)) {
+      fs.mkdirSync(this.caPath, { recursive: true });
+    }
+
+    // Cargar o crear CA
+    if (fs.existsSync(this.certPath) && fs.existsSync(this.keyPath)) {
+      await this.loadCA();
+    } else {
+      await this.createCA();
+    }
+  }
+
+  /**
+   * Crea una nueva Autoridad Certificadora
+   * Genera un par de claves RSA y un certificado autofirmado
+   */
+  async createCA() {
+    console.log(' Creando nueva Autoridad Certificadora...');
+    
+    // Generar par de claves RSA
+    const keys = forge.pki.rsa.generateKeyPair(4096);
+    
+    // Crear certificado CA
+    const cert = forge.pki.createCertificate();
+    cert.publicKey = keys.publicKey;
+    cert.serialNumber = '01';
+    cert.validity.notBefore = new Date();
+    cert.validity.notAfter = new Date();
+    cert.validity.notAfter.setFullYear(cert.validity.notBefore.getFullYear() + 10);
+    
+    const attrs = [
+      { name: 'commonName', value: 'DGAT Email Certificates CA' },
+      { name: 'countryName', value: 'ES' },
+      { shortName: 'ST', value: 'Madrid' },
+      { name: 'localityName', value: 'Madrid' },
+      { name: 'organizationName', value: 'DGAT Proyectos' },
+      { shortName: 'OU', value: 'Certificate Authority' }
+    ];
+    
+    cert.setSubject(attrs);
+    cert.setIssuer(attrs);
+    cert.setExtensions([
+      {
+        name: 'basicConstraints',
+        cA: true,
+        critical: true
+      },
+      {
+        name: 'keyUsage',
+        keyCertSign: true,
+        cRLSign: true,
+        critical: true
+      }
+    ]);
+    
+    cert.sign(keys.privateKey, forge.md.sha256.create());
+    
+    // Guardar certificado y clave
+    this.caCert = cert;
+    this.caKeys = keys;
+    
+    fs.writeFileSync(this.certPath, forge.pki.certificateToPem(cert));
+    fs.writeFileSync(this.keyPath, forge.pki.privateKeyToPem(keys.privateKey));
+    
+    console.log(' Autoridad Certificadora creada');
+  }
+
+  /**
+   * Carga una CA existente desde los archivos guardados
+   */
+  async loadCA() {
+    console.log(' Cargando Autoridad Certificadora existente...');
+    
+    const certPem = fs.readFileSync(this.certPath, 'utf8');
+    const keyPem = fs.readFileSync(this.keyPath, 'utf8');
+    
+    this.caCert = forge.pki.certificateFromPem(certPem);
+    this.caKeys = {
+      privateKey: forge.pki.privateKeyFromPem(keyPem),
+      publicKey: this.caCert.publicKey
+    };
+    
+    console.log(' CA cargada desde archivos');
+  }
+
+  /**
+   * Devuelve la información del certificado de la CA
+   * @returns {Object} Información detallada del certificado CA
+   */
+  getCACertificate() {
+    return {
+      certificate: forge.pki.certificateToPem(this.caCert),
+      serialNumber: this.caCert.serialNumber,
+      subject: this.formatDistinguishedName(this.caCert.subject),
+      issuer: this.formatDistinguishedName(this.caCert.issuer),
+      validFrom: this.caCert.validity.notBefore,
+      validTo: this.caCert.validity.notAfter,
+      keySize: 4096,
+      fingerprint: this.calculateFingerprint(this.caCert)
+    };
+  }
+
+  /**
+   * Calcula la huella digital (fingerprint) de un certificado
+   * @param {Object} cert - Certificado de forge
+   * @returns {String} Huella digital en formato hexadecimal
+   */
+  calculateFingerprint(cert) {
+    const der = forge.asn1.toDer(forge.pki.certificateToAsn1(cert)).getBytes();
+    const md = forge.md.sha256.create();
+    md.update(der);
+    return md.digest().toHex();
+  }
+
+  /**
+   * Formatea el nombre distinguido (DN) de un certificado
+   * @param {Object} dn - Objeto de nombre distinguido de forge
+   * @returns {Object} Objeto con campos comunes del DN formateados
+   */
+  formatDistinguishedName(dn) {
+    if (!dn || !dn.attributes) return '';
+    
+    const attributes = {};
+    for (const attr of dn.attributes) {
+      if (attr.name && attr.value) {
+        attributes[attr.name] = attr.value;
+      } else if (attr.shortName && attr.value) {
+        attributes[attr.shortName] = attr.value;
+      }
+    }
+    
+    return {
+      CN: attributes.commonName || attributes.CN || '',
+      O: attributes.organizationName || attributes.O || '',
+      OU: attributes.organizationalUnitName || attributes.OU || '',
+      C: attributes.countryName || attributes.C || '',
+      ST: attributes.stateOrProvinceName || attributes.ST || '',
+      L: attributes.localityName || attributes.L || '',
+      EMAIL: attributes.emailAddress || ''
+    };
+  }
+
+  /**
+   * Genera un certificado S/MIME para un usuario
+   * @param {String} email - Correo electrónico del usuario
+   * @param {String} name - Nombre del usuario
+   * @param {Number} keySize - Tamaño de clave en bits
+   * @param {Number} validityYears - Años de validez del certificado
+   * @param {String} password - Contraseña para proteger el archivo PKCS#12
+   * @returns {Object} Certificado generado con todos sus formatos
+   */
+  generateCertificate(email, name, keySize = 4096, validityYears = 3, password = '') {
+    console.log(`Generando certificado para: ${email}`);
+    // Generar par de claves para el usuario
+    const userKeys = forge.pki.rsa.generateKeyPair(keySize);
+    // Crear certificado
+    const cert = forge.pki.createCertificate();
+    cert.publicKey = userKeys.publicKey;
+    cert.serialNumber = forge.util.bytesToHex(forge.random.getBytesSync(16));
+    cert.validity.notBefore = new Date();
+    cert.validity.notAfter = new Date();
+    cert.validity.notAfter.setFullYear(cert.validity.notBefore.getFullYear() + validityYears);
+    const attrs = [
+      { name: 'commonName', value: name || email.split('@')[0] },
+      { name: 'emailAddress', value: email },
+      { name: 'countryName', value: 'ES' },
+      { name: 'organizationName', value: 'Personal' }
+    ];
+    cert.setSubject(attrs);
+    cert.setIssuer(this.caCert.subject.attributes);
+    cert.setExtensions([
+      {
+        name: 'basicConstraints',
+        cA: false
+      },
+      {
+        name: 'keyUsage',
+        digitalSignature: true,
+        keyEncipherment: true,
+        dataEncipherment: true
+      },
+      {
+        name: 'extKeyUsage',
+        emailProtection: true
+      },
+      {
+        name: 'subjectAltName',
+        altNames: [{ type: 1, value: email }]
+      }
+    ]);
+    cert.sign(this.caKeys.privateKey, forge.md.sha256.create());
+    // Crear PKCS#12 con contraseña del usuario
+    const p12Asn1 = forge.pkcs12.toPkcs12Asn1(
+      userKeys.privateKey,
+      [cert, this.caCert],
+      password,
+      { algorithm: '3des' }
+    );
+    const p12Der = forge.asn1.toDer(p12Asn1).getBytes();
+    const p12Base64 = forge.util.encode64(p12Der);
+    return {
+      certificate: forge.pki.certificateToPem(cert),
+      privateKey: forge.pki.privateKeyToPem(userKeys.privateKey),
+      pkcs12: p12Base64,
+      email: email,
+      name: name,
+      serialNumber: cert.serialNumber,
+      validFrom: cert.validity.notBefore,
+      validTo: cert.validity.notAfter
+    };
+  }
+}
+
+/**
+ * Crea la ventana principal de la aplicación
+ */
+function createWindow() {
+  mainWindow = new BrowserWindow({
+    width: 1200,
+    height: 800,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js')
+    },
+    icon: path.join(__dirname, '../assets/icon.ico'),
+    title: 'Generador de Certificados S/MIME',
+    show: false
+  });
+
+  mainWindow.loadFile(path.join(__dirname, 'renderer/index.html'));
+
+  // Mostrar ventana cuando esté lista
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show();
+  });
+
+  // Configurar menú
+  const template = [
+    {
+      label: 'Archivo',
+      submenu: [
+        {
+          label: 'Nuevo Certificado',
+          accelerator: 'CmdOrCtrl+N',
+          click: () => {
+            mainWindow.webContents.send('new-certificate');
+          }
+        },
+        {
+          label: 'Exportar Certificados',
+          click: () => {
+            mainWindow.webContents.send('export-certificates');
+          }
+        },
+        { type: 'separator' },
+        {
+          label: 'Salir',
+          accelerator: process.platform === 'darwin' ? 'Cmd+Q' : 'Ctrl+Q',
+          click: () => {
+            app.quit();
+          }
+        }
+      ]
+    },
+    {
+      label: 'Autoridad Certificadora',
+      submenu: [
+        {
+          label: 'Ver Información de CA',
+          click: () => {
+            mainWindow.webContents.send('view-ca-info');
+          }
+        },
+        {
+          label: 'Exportar Certificado CA',
+          click: () => {
+            mainWindow.webContents.send('export-ca-cert');
+          }
+        }
+      ]
+    },
+    {
+      label: 'Ayuda',
+      submenu: [
+        {
+          label: 'Documentación',
+          accelerator: 'F1',
+          click: () => {
+            mainWindow.webContents.send('show-help');
+          }
+        },
+        {
+          label: 'Acerca de',
+          click: () => {
+            dialog.showMessageBox(mainWindow, {
+              type: 'info',
+              title: 'Acerca de',
+              message: 'Generador de Certificados S/MIME',
+              detail: 'Versión 1.0.0\nDGAT Proyectos 2025\nGenerador profesional de certificados para correo electrónico\nIdeado y desarrollado por Analista Programador Eduard Suárez'
+            });
+          }
+        }
+      ]
+    }
+  ];
+
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu);
+}
+
+// Eventos de la aplicación
+app.whenReady().then(async () => {
+  // Inicializar CA
+  caManager = new CAManager();
+  await caManager.initialize();
+  
+  createWindow();
+
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow();
+    }
+  });
+});
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
+});
+
+/**
+ * Manejadores de IPC (comunicación entre procesos)
+ * Permiten que la interfaz de usuario se comunique con el proceso principal
+ */
+
+// Generar un nuevo certificado
+ipcMain.handle('generate-certificate', async (event, data) => {
+  try {
+    const { email, name, keySize, validityYears, password } = data;
+    const certificate = caManager.generateCertificate(email, name, keySize, validityYears, password);
+    // Guardar en historial
+    const certificates = store.get('certificates', []);
+    certificates.push({
+      ...certificate,
+      createdAt: new Date().toISOString()
+    });
+    store.set('certificates', certificates);
+    return { success: true, certificate };
+  } catch (error) {
+    console.error('Error generando certificado:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// Obtener lista de certificados generados
+ipcMain.handle('get-certificates', async () => {
+  return store.get('certificates', []);
+});
+
+// Obtener información de la CA
+ipcMain.handle('get-ca-info', async () => {
+  try {
+    const caInfo = caManager.getCACertificate();
+    return { success: true, caInfo };
+  } catch (error) {
+    console.error('Error obteniendo información de la CA:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// Guardar certificado CA
+ipcMain.handle('save-ca-certificate', async () => {
+  try {
+    const caInfo = caManager.getCACertificate();
+    
+    const result = await dialog.showSaveDialog(mainWindow, {
+      title: 'Guardar Certificado CA',
+      defaultPath: 'DGAT_CA_Certificate.crt',
+      filters: [
+        { name: 'Certificados', extensions: ['crt'] },
+        { name: 'Todos los archivos', extensions: ['*'] }
+      ]
+    });
+
+    if (!result.canceled) {
+      fs.writeFileSync(result.filePath, caInfo.certificate);
+      return { success: true, path: result.filePath };
+    }
+    
+    return { success: false, error: 'Cancelado por el usuario' };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Guardar certificado de usuario
+ipcMain.handle('save-certificate', async (event, { certificate, filename }) => {
+  try {
+    const result = await dialog.showSaveDialog(mainWindow, {
+      title: 'Guardar Certificado',
+      defaultPath: filename,
+      filters: [
+        { name: 'Certificados PKCS#12', extensions: ['p12'] },
+        { name: 'Certificados PEM', extensions: ['pem'] },
+        { name: 'Todos los archivos', extensions: ['*'] }
+      ]
+    });
+
+    if (!result.canceled) {
+      if (result.filePath.endsWith('.p12')) {
+        const buffer = Buffer.from(certificate.pkcs12, 'base64');
+        fs.writeFileSync(result.filePath, buffer);
+      } else {
+        fs.writeFileSync(result.filePath, certificate.certificate);
+      }
+      return { success: true, path: result.filePath };
+    }
+    
+    return { success: false, error: 'Cancelado por el usuario' };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Exportar datos de certificados
+ipcMain.handle('export-data', async (event, format) => {
+  try {
+    const certificates = store.get('certificates', []);
+    
+    const result = await dialog.showSaveDialog(mainWindow, {
+      title: 'Exportar Datos',
+      defaultPath: `certificados-${new Date().toISOString().split('T')[0]}.${format}`,
+      filters: [
+        { name: format.toUpperCase(), extensions: [format] }
+      ]
+    });
+
+    if (!result.canceled) {
+      let content;
+      if (format === 'json') {
+        content = JSON.stringify(certificates, null, 2);
+      } else if (format === 'csv') {
+        const headers = 'Email,Nombre,Serial,Creado,Válido Hasta\n';
+        const rows = certificates.map(cert => 
+          `"${cert.email}","${cert.name || ''}","${cert.serialNumber}","${cert.createdAt}","${cert.validTo}"`
+        ).join('\n');
+        content = headers + rows;
+      }
+      
+      fs.writeFileSync(result.filePath, content, 'utf8');
+      return { success: true, path: result.filePath };
+    }
+    
+    return { success: false, error: 'Cancelado por el usuario' };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});

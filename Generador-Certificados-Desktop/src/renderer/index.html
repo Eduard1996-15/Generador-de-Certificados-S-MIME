@@ -1,0 +1,216 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Certificados S/MIME</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <h1> Generador de Certificados S/MIME</h1>
+                <p class="subtitle">Aplicación de Escritorio - DGAT Proyectos</p>
+            </div>
+        </header>
+
+        <main>
+            <!-- Formulario de generación -->
+            <section class="card">
+                <h2> Generar Nuevo Certificado</h2>
+                <form id="certificate-form">
+                    <div class="form-group">
+                        <label for="email"> Correo Electrónico:</label>
+                        <input type="email" id="email" name="email" required 
+                               placeholder="ejemplo@correo.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="name"> Nombre Completo:</label>
+                        <input type="text" id="name" name="name" 
+                               placeholder="Juan Pérez (opcional)">
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="keySize"> Tamaño de Clave:</label>
+                            <select id="keySize" name="keySize">
+                                <option value="2048">RSA-2048 (Rápido)</option>
+                                <option value="4096" selected>RSA-4096 (Recomendado)</option>
+                                <option value="8192">RSA-8192 (Máxima Seguridad)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="validity"> Validez:</label>
+                            <select id="validity" name="validity">
+                                <option value="1">1 año</option>
+                                <option value="2">2 años</option>
+                                <option value="3" selected>3 años</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Contraseña del archivo (.p12):</label>
+                            <input type="password" id="password" name="password" required minlength="4" maxlength="64" placeholder="Mínimo 4 caracteres">
+                            <small>La contraseña es obligatoria para proteger el archivo PKCS#12</small>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary" id="generate-btn">
+                         Generar Certificado
+                    </button>
+                </form>
+            </section>
+
+            <!-- Resultado -->
+            <section class="card" id="result-section" style="display: none;">
+                <h2> Certificado Generado</h2>
+                <div id="certificate-info"></div>
+                <div class="button-group">
+                    <button class="btn-secondary" id="download-p12">
+                         Descargar PKCS#12 (.p12)
+                    </button>
+                <button class="btn-secondary" id="download-pem">
+                    Descargar PEM (.pem)
+                </button>
+                <button class="btn-secondary" id="download-crt">
+                    Descargar Público (.crt)
+                </button>
+                    <button class="btn-primary" id="new-certificate">
+                         Nuevo Certificado
+                    </button>
+                </div>
+            </section>
+
+            <!-- Autoridad Certificadora -->
+            <section class="card" id="ca-section">
+                <h2> Autoridad Certificadora</h2>
+                <div class="ca-info">
+                    <p>La Autoridad Certificadora (CA) es la entidad que firma todos los certificados generados. 
+                       Para que los certificados sean reconocidos, debes importar esta CA en los equipos donde 
+                       vayas a utilizar los certificados.</p>
+
+                    <div class="ca-details" id="ca-details">
+                        <div class="loading"> Cargando información de CA...</div>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="btn-secondary" id="download-ca-cert">
+                             Descargar Certificado CA (.crt)
+                        </button>
+                        <button class="btn-info" id="view-ca-info">
+                             Ver Información Detallada
+                        </button>
+                        <button class="btn-warning" id="renew-ca">
+                             Renovar CA (8192 bits)
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Historial -->
+            <section class="card">
+                <h2> Historial de Certificados</h2>
+                <div class="toolbar">
+                    <button class="btn-secondary" id="refresh-list">
+                         Actualizar
+                    </button>
+                    <button class="btn-secondary" id="export-json">
+                         Exportar JSON
+                    </button>
+                    <button class="btn-secondary" id="export-csv">
+                         Exportar CSV
+                    </button>
+                </div>
+                <div id="certificates-list">
+                    <div class="loading">Cargando certificados...</div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Modal de Ayuda -->
+        <div id="help-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Ayuda y Documentación</h2>
+                
+                <div class="tabs">
+                    <button class="tab-button active" data-tab="tab-general">General</button>
+                    <button class="tab-button" data-tab="tab-certificates">Certificados</button>
+                    <button class="tab-button" data-tab="tab-ca">Autoridad Certificadora</button>
+                    <button class="tab-button" data-tab="tab-import">Importación</button>
+                </div>
+                
+                <div class="tab-content active" id="tab-general">
+                    <h3>Información General</h3>
+                    <p>Esta aplicación le permite generar certificados S/MIME para firmar y cifrar correos electrónicos. 
+                    Los certificados generados son compatibles con clientes de correo como Thunderbird, Outlook, Apple Mail, etc.</p>
+                    
+                    <h4>Características principales:</h4>
+                    <ul>
+                        <li>Generación de certificados S/MIME personalizados</li>
+                        <li>Gestión de certificados desde una interfaz sencilla</li>
+                        <li>Exportación en formatos PKCS#12 (.p12), PEM (.pem) y certificado público (.crt)</li>
+                        <li>Autoridad Certificadora (CA) propia incluida</li>
+                    </ul>
+                </div>
+                
+                <div class="tab-content" id="tab-certificates">
+                    <h3>Generación de Certificados</h3>
+                    <p>Para generar un certificado, complete el formulario con la siguiente información:</p>
+                    <ul>
+                        <li><strong>Correo Electrónico:</strong> Debe coincidir con la dirección de correo que usará para firmar/cifrar mensajes.</li>
+                        <li><strong>Nombre:</strong> Su nombre completo (opcional).</li>
+                        <li><strong>Tamaño de Clave:</strong> Determina la fortaleza de la criptografía (recomendado: 4096 bits).</li>
+                        <li><strong>Validez:</strong> Período durante el cual el certificado será válido.</li>
+                        <li><strong>Contraseña:</strong> Protege su archivo PKCS#12. Guárdela en un lugar seguro.</li>
+                    </ul>
+                </div>
+                
+                <div class="tab-content" id="tab-ca">
+                    <h3>Autoridad Certificadora</h3>
+                    <p>Todos los certificados están firmados por una Autoridad Certificadora (CA) generada automáticamente 
+                    la primera vez que usa la aplicación. Para usar los certificados, deberá importar esta CA en sus dispositivos:</p>
+                    <ol>
+                        <li>Vaya a la sección "Autoridad Certificadora"</li>
+                        <li>Descargue el certificado CA (.crt)</li>
+                        <li>Importe este certificado en sus dispositivos como "Autoridad de certificación raíz de confianza"</li>
+                    </ol>
+                    <p><strong>Nota:</strong> La CA generada es para uso personal. No es reconocida globalmente como las CA comerciales.</p>
+                </div>
+                
+                <div class="tab-content" id="tab-import">
+                    <h3>Importación en Clientes de Correo</h3>
+                    
+                    <h4>Mozilla Thunderbird</h4>
+                    <ol>
+                        <li>Vaya a Ajustes→ Configuración de la cuenta → Cifrado de extremo a extremo → Administrar Certificados S/MIME </li>
+                        <li>En la pestaña "Autoridades", haga clic en "Importar" y seleccione el certificado CA (.crt)</li>
+                        <li>Marque "Confiar en esta CA para identificar sitios web" y "Confiar en esta CA para identificar usuarios de correo"</li>
+                        <li>Luego, para importar su certificado personal, vaya a la pestaña "Sus certificados" y haga clic en "Importar"</li>
+                        <li>Seleccione su archivo PKCS#12 (.p12) e ingrese la contraseña</li>
+                    </ol>
+                    
+                    <h4>Microsoft Outlook</h4>
+                    <ol>
+                        <li>Primero, importe el certificado CA en Windows: doble clic en el archivo .crt</li>
+                        <li>Seleccione "Instalar certificado" → "Equipo local" → "Colocar todos los certificados en el siguiente almacén"</li>
+                        <li>Seleccione "Entidades de certificación raíz de confianza" → Finalizar</li>
+                        <li>Para su certificado personal, doble clic en el archivo .p12</li>
+                        <li>Siga el asistente, ingrese la contraseña cuando se le solicite</li>
+                        <li>En Outlook, vaya a Archivo → Opciones → Centro de confianza → Seguridad del correo electrónico para configurar S/MIME</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p> 2025 DGAT Proyectos - Generador de Certificados S/MIME</p>
+            <p>Compatible con Thunderbird, Outlook y otros clientes de correo</p>
+            <p class="developer-info">Ideado y desarrollado por Analista Programador Eduard Suárez</p>
+        </footer>
+    </div>
+
+    <script src="app-desktop.js"></script>
+</body>
+</html>
