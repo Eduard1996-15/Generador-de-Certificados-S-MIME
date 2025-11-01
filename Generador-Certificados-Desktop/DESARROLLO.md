@@ -20,7 +20,7 @@ Este documento contiene información para desarrolladores que deseen trabajar en
 
 1. Clone el repositorio:
 ```bash
-git clone https://github.com/dgat-proyectos/generador-certificados-desktop.git
+git clone https://github.com/empresa-proyectos/generador-certificados-desktop.git
 cd generador-certificados-desktop
 ```
 

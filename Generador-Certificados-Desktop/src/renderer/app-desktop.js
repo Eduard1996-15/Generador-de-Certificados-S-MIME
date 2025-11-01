@@ -1,6 +1,6 @@
 ﻿/**
  * Generador de Certificados S/MIME - Aplicación de Escritorio
- * Ideado y desarrollado por Analista Programador Eduard Suárez
+ * Ideado y desarrollado por Desarrollador
  * 
  * Este archivo contiene la lógica de la interfaz de usuario para la aplicación 
  * de generación de certificados S/MIME. Maneja la interacción con el usuario, 

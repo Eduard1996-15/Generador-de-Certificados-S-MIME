@@ -1,6 +1,6 @@
 /**
  * Generador de Certificados S/MIME - Aplicación de Escritorio
- * Ideado y desarrollado por Analista Programador Eduard Suárez
+ * Ideado y desarrollado por Desarrollador
  * 
  * Este archivo es el punto de entrada principal de la aplicación Electron.
  * Contiene la lógica para manejar la Autoridad Certificadora, generar certificados,
@@ -68,13 +68,13 @@ class CAManager {
     cert.validity.notAfter.setFullYear(cert.validity.notBefore.getFullYear() + 10);
     
     const attrs = [
-      { name: 'commonName', value: 'DGAT Root Certification Authority' },
+      { name: 'commonName', value: 'Empresa Root Certification Authority' },
       { name: 'countryName', value: 'UY' },
       { shortName: 'ST', value: 'Montevideo' },
       { name: 'localityName', value: 'Montevideo' },
-      { name: 'organizationName', value: 'DGAT Proyectos' },
+      { name: 'organizationName', value: 'Empresa' },
       { shortName: 'OU', value: 'Certificate Authority' },
-      { name: 'emailAddress', value: 'ca@dgatproyectos.com' }
+      { name: 'emailAddress', value: 'ca@empresa.com' }
     ];
     
     cert.setSubject(attrs);
@@ -355,7 +355,7 @@ function createWindow() {
               type: 'info',
               title: 'Acerca de',
               message: 'Generador de Certificados S/MIME',
-              detail: 'Versión 1.0.0\nDGAT Proyectos 2025\nGenerador profesional de certificados para correo electrónico\nIdeado y desarrollado por Analista Programador Eduard Suárez'
+              detail: 'Versión 1.0.0\nEmpresa 2025\nGenerador profesional de certificados para correo electrónico\nIdeado y desarrollado por Desarrollador'
             });
           }
         }
@@ -435,7 +435,7 @@ ipcMain.handle('save-ca-certificate', async () => {
     
     const result = await dialog.showSaveDialog(mainWindow, {
       title: 'Guardar Certificado CA',
-      defaultPath: 'DGAT_CA_Certificate.crt',
+      defaultPath: 'Empresa_CA_Certificate.crt',
       filters: [
         { name: 'Certificados', extensions: ['crt'] },
         { name: 'Todos los archivos', extensions: ['*'] }

@@ -1,8 +1,8 @@
 # Documentación del Generador de Certificados S/MIME
 
 **Versión 1.0.0**  
-**Desarrollado por:** Analista Programador Eduard Suárez  
-**Empresa:** DGAT Proyectos  
+**Desarrollado por:** Desarrollador  
+**Empresa:** Empresa  
 **Fecha:** Agosto 2025
 
 ## Índice
@@ -283,8 +283,8 @@ Para problemas avanzados, puede acceder a los registros de la aplicación en:
 
 Para soporte técnico o consultas, póngase en contacto con:
 
-**Desarrollador:** Eduard Suárez  
-**Empresa:** DGAT Proyectos  
+**Desarrollador:** Desarrollador  
+**Empresa:** Empresa  
 **Localización:** Montevideo, Uruguay  
 **Año:** 2025
 

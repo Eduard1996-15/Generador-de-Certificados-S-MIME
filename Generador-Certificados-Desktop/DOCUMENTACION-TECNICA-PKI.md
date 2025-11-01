@@ -3,7 +3,7 @@
 
 **Versión:** 1.0.0  
 **Fecha:** Octubre 2025  
-**Desarrollado por:** Analista Programador Eduard Suárez - DGAT Proyectos
+**Desarrollado por:** Desarrollador - Empresa
 
 ---
 
@@ -139,11 +139,11 @@ cert.validity.notAfter.setFullYear(cert.validity.notBefore.getFullYear() + 10);
 
 ```javascript
 const attrs = [
-  { name: 'commonName', value: 'DGAT Email Certificates CA' },
+  { name: 'commonName', value: 'Empresa Email Certificates CA' },
   { name: 'countryName', value: 'ES' },
   { shortName: 'ST', value: 'Madrid' },
   { name: 'localityName', value: 'Madrid' },
-  { name: 'organizationName', value: 'DGAT Proyectos' },
+  { name: 'organizationName', value: 'Empresa' },
   { shortName: 'OU', value: 'Certificate Authority' }
 ];
 
@@ -155,13 +155,13 @@ cert.setIssuer(attrs);  // Autofirmado: Subject = Issuer
 
 | Atributo | OID | Valor | Propósito |
 |----------|-----|-------|-----------|
-| CN (Common Name) | 2.5.4.3 | DGAT Root Certification Authority | Identifica la CA |
+| CN (Common Name) | 2.5.4.3 | Empresa Root Certification Authority | Identifica la CA |
 | C (Country) | 2.5.4.6 | UY | Código ISO 3166-1 país (Uruguay) |
 | ST (State) | 2.5.4.8 | Montevideo | Estado/Provincia/Departamento |
 | L (Locality) | 2.5.4.7 | Montevideo | Ciudad |
-| O (Organization) | 2.5.4.10 | DGAT Proyectos | Organización emisora |
+| O (Organization) | 2.5.4.10 | Empresa | Organización emisora |
 | OU (Org Unit) | 2.5.4.11 | Certificate Authority | Unidad organizativa |
-| emailAddress | 1.2.840.113549.1.9.1 | ca@dgatproyectos.com | Email de contacto de la CA |
+| emailAddress | 1.2.840.113549.1.9.1 | ca@empresa.com | Email de contacto de la CA |
 
 **Referencias:**
 - **RFC 5280 §4.1.2.4** - Issuer
@@ -1170,11 +1170,11 @@ Certificate:
         Version: 3 (0x2)
         Serial Number: 1 (0x1)
         Signature Algorithm: sha256WithRSAEncryption
-        Issuer: CN=DGAT Root Certification Authority, C=UY, ST=Montevideo, L=Montevideo, O=DGAT Proyectos, OU=Certificate Authority, emailAddress=ca@dgatproyectos.com
+        Issuer: CN=Empresa Root Certification Authority, C=UY, ST=Montevideo, L=Montevideo, O=Empresa, OU=Certificate Authority, emailAddress=ca@empresa.com
         Validity
             Not Before: Oct 3 00:00:00 2025 GMT
             Not After : Oct 1 00:00:00 2035 GMT
-        Subject: CN=DGAT Root Certification Authority, C=UY, ST=Montevideo, L=Montevideo, O=DGAT Proyectos, OU=Certificate Authority, emailAddress=ca@dgatproyectos.com
+        Subject: CN=Empresa Root Certification Authority, C=UY, ST=Montevideo, L=Montevideo, O=Empresa, OU=Certificate Authority, emailAddress=ca@empresa.com
         Subject Public Key Info:
             Public Key Algorithm: rsaEncryption
                 RSA Public-Key: (8192 bit)
@@ -1278,8 +1278,8 @@ El sistema implementa mejores prácticas de criptografía moderna y es adecuado 
 ---
 
 **Documento preparado por:**  
-Analista Programador Eduard Suárez  
-DGAT Proyectos  
+Desarrollador  
+Empresa  
 Octubre 2025
 
 **Versión del documento:** 1.0  
