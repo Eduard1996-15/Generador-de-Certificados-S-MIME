@@ -56,13 +56,13 @@ Para obtener información detallada sobre el uso y configuración:
 
 ## Soporte
 
-Esta aplicación fue ideada y desarrollada por el Analista Programador Eduard Suárez para DGAT Proyectos.
+Esta aplicación fue ideada y desarrollada por el Desarrollador para Empresa.
 
-Para soporte técnico o consultas, contacte con DGAT Proyectos.
+Para soporte técnico o consultas, contacte con Empresa.
 
 ## Licencia
 
-Este software es propiedad de DGAT Proyectos. Todos los derechos reservados.
+Este software es propiedad de Empresa. Todos los derechos reservados.
 
 ---
 

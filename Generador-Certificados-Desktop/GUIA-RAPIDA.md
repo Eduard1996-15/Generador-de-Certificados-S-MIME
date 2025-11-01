@@ -96,4 +96,4 @@ Para asegurar el modo portable:
 ---
 
 *Guía Rápida v1.0 - Generador de Certificados S/MIME*  
-*Desarrollado por Eduard Suárez - DGAT Proyectos*
+*Desarrollado por Desarrollador - Empresa*

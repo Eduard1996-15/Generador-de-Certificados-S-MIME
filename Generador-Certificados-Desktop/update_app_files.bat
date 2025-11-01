@@ -27,5 +27,5 @@ rmdir /S /Q temp_update
 
 echo Actualizacion completa.
 echo Para crear una nueva version del ejecutable, abra PowerShell como administrador y ejecute:
-echo cd "C:\Users\Admin\Documents\PROYECTOS DGAT\Generador-Certificados-Desktop"
+echo cd "C:\Users\Admin\Documents\PROYECTOS Empresa\Generador-Certificados-Desktop"
 echo npm run build -- --win

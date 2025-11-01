@@ -493,7 +493,7 @@ async function downloadCACertificate() {
         
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'DGAT_CA_Certificate.crt';
+        a.download = 'Empresa_CA_Certificate.crt';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);

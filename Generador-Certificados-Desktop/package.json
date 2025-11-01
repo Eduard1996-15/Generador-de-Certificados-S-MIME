@@ -12,7 +12,7 @@
     "pack": "electron-builder --dir"
   },
   "build": {"asar": false,"asar": false,"asar": false,"asar": false,"asar": false,
-    "appId": "com.dgat.generador-certificados",
+    "appId": "com.empresa.generador-certificados",
     "productName": "Generador de Certificados S/MIME",
     "directories": {
       "output": "dist"
@@ -49,7 +49,7 @@
     "email",
     "encryption"
   ],
-  "author": "DGAT Proyectos",
+  "author": "Empresa",
   "license": "MIT",
   "devDependencies": {
     "electron": "28.0.0",
