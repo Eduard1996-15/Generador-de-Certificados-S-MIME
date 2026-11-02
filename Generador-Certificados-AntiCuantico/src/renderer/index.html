@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PQC - Generador de Certificados Post-Cuánticos</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>🔮 Generador de Certificados Post-Cuánticos</h1>
+                <p class="subtitle">Proyecto de Ejemplo</p>
+                <div class="quantum-badge">
+                    <span class="badge">🛡️ Resistente a Computación Cuántica</span>
+                    <span class="badge">📧 Compatible S/MIME</span>
+                    <span class="badge">🔗 Certificados Híbridos</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- CA Status -->
+            <section class="section">
+                <h2>🏛️ Estado de la Autoridad Certificadora</h2>
+                <div id="ca-status" class="ca-status">
+                    <div class="status-item">
+                        <span class="status-label">Estado:</span>
+                        <span id="ca-state" class="status-not-initialized">No Inicializada</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Algoritmo:</span>
+                        <span id="ca-algorithm">RSA-4096 + CRYSTALS-Dilithium-3</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Modo:</span>
+                        <span id="ca-mode">Híbrido (Compatibilidad + Seguridad Cuántica)</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CA Information -->
+            <section class="section" id="ca-info-section" style="display: none;">
+                <h2>📊 Información de CA Post-Cuántica</h2>
+                <div id="ca-details" class="ca-details">
+                    <!-- Se llenará dinámicamente -->
+                </div>
+            </section>
+
+            <!-- Actions -->
+            <section class="section">
+                <h2>🚀 Acciones</h2>
+                <div class="actions-grid">
+                    <button id="btn-init-ca" class="btn btn-primary">
+                        🔮 Crear CA Post-Cuántica
+                    </button>
+                    <button id="btn-show-email-form" class="btn btn-primary" disabled>
+                        📧 Generar Certificados de Correo
+                    </button>
+                    <button id="btn-show-info" class="btn btn-secondary" disabled>
+                        📊 Ver Información CA
+                    </button>
+                    <button id="btn-download-ca" class="btn btn-success" disabled>
+                        📥 Descargar CA Root
+                    </button>
+                        <button class="btn success" id="btn-verify-encryption">
+                            🔍 Verificar Cifrado
+                        </button>
+                        <button class="btn warning" id="btn-regenerate-ca">
+                            🔄 Regenerar CA
+                        </button>
+                    <button id="btn-compatibility-report" class="btn btn-secondary" disabled>
+                        🧪 Reporte de Compatibilidad
+                    </button>
+                    <button id="btn-open-testing" class="btn btn-secondary" disabled>
+                        📁 Abrir Directorio de Pruebas
+                    </button>
+                </div>
+            </section>
+
+            <!-- Quantum Information -->
+            <section class="section">
+                <h2>🔮 Información Post-Cuántica</h2>
+                <div class="quantum-info">
+                    <div class="info-card">
+                        <h3>🎯 Algoritmo de Shor</h3>
+                        <p><strong>Amenaza:</strong> 2030-2040</p>
+                        <p><strong>Impacto:</strong> RSA completamente vulnerable</p>
+                        <p><strong>Solución:</strong> CRYSTALS-Dilithium</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>🛡️ CRYSTALS-Dilithium</h3>
+                        <p><strong>Estado:</strong> Aprobado por NIST (2024)</p>
+                        <p><strong>Seguridad:</strong> 192 bits equivalentes</p>
+                        <p><strong>Resistencia:</strong> Computación cuántica</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>📧 S/MIME Híbrido</h3>
+                        <p><strong>Compatibilidad:</strong> Thunderbird, Outlook</p>
+                        <p><strong>Método:</strong> RSA + extensiones PQC</p>
+                        <p><strong>Migración:</strong> Gradual hacia puro PQC</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Email Certificate Generator -->
+            <section class="section" id="email-cert-section" style="display: none;">
+                <h2>📧 Generador de Certificados de Correo</h2>
+                <div class="email-cert-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="user-name">👤 Nombre Completo:</label>
+                            <input type="text" id="user-name" placeholder="Ej: Juan Pérez" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="user-email">📧 Correo Electrónico:</label>
+                            <input type="email" id="user-email" placeholder="Ej: usuario@example.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="encryption-type">🔐 Tipo de Cifrado:</label>
+                            <select id="encryption-type">
+                                <option value="hybrid" selected>Híbrido (RSA + Post-Cuántico)</option>
+                                <option value="rsa-4096">RSA 4096-bit</option>
+                                <option value="post-quantum">Post-Cuántico Puro</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="cert-validity">⏰ Validez (años):</label>
+                            <select id="cert-validity">
+                                <option value="1">1 año</option>
+                                <option value="2" selected>2 años</option>
+                                <option value="3">3 años</option>
+                                <option value="5">5 años</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="cert-password">🔑 Contraseña del Certificado:</label>
+                            <input type="password" id="cert-password" value="" placeholder="Contraseña para archivo .p12">
+                            <small class="form-hint">Se usa para proteger el archivo .p12 (definida por el usuario)</small>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button id="btn-generate-email-cert" class="btn btn-primary">
+                            🔮 Generar Certificado S/MIME
+                        </button>
+                        <button id="btn-clear-form" class="btn btn-secondary">
+                            🗑️ Limpiar Formulario
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Generated Certificates List -->
+                <div id="generated-certs" class="generated-certs" style="display: none;">
+                    <h3>📋 Certificados Generados</h3>
+                    <div id="certs-list" class="certs-list">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Status Bar -->
+        <footer class="status-bar">
+            <div class="status-left">
+                <span id="status-message">Listo para generar certificados post-cuánticos</span>
+            </div>
+            <div class="status-right">
+                <span>🔮 Anti-Cuántico v1.0.0</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Loading Modal -->
+    <div id="loading-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="loading-spinner"></div>
+            <h3>🔮 Generando CA Post-Cuántica...</h3>
+            <p id="loading-message">Inicializando algoritmos cuántico-resistentes...</p>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
